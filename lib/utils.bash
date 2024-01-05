@@ -37,21 +37,31 @@ list_all_versions() {
 }
 
 download_release() {
-	local version filename url
+	local version filename url os arch
 	version="$1"
 	filename="$2"
+	os="$(uname | tr '[:upper:]' '[:lower:]')"
+	arch="$(uname -m)"
+	if [ "$os" == "darwin" ] && [ "$arch" == "arm64" ]; then
+		arch="aarch64"
+	fi
 
-	# TODO: Adapt the release URL convention for taplo
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	url="$GH_REPO/releases/download/${version}/taplo-${os}-${arch}.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
 }
 
 install_version() {
-	local install_type="$1"
-	local version="$2"
-	local install_path="${3%/bin}/bin"
+	local install_type version install_path os arch
+	install_type="$1"
+	version="$2"
+	install_path="${3%/bin}/bin"
+	os="$(uname | tr '[:upper:]' '[:lower:]')"
+	arch="$(uname -m)"
+	if [ "$os" == "darwin" ] && [ "$arch" == "arm64" ]; then
+		arch="aarch64"
+	fi
 
 	if [ "$install_type" != "version" ]; then
 		fail "asdf-$TOOL_NAME supports release installs only"
@@ -59,9 +69,10 @@ install_version() {
 
 	(
 		mkdir -p "$install_path"
-		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+		local download_file="$ASDF_DOWNLOAD_PATH/taplo-${os}-${arch}.gz"
+		local install_file="$install_path/$TOOL_NAME"
+		gunzip -c "$download_file" >"$install_file"
 
-		# TODO: Assert taplo executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
