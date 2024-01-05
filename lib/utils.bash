@@ -57,11 +57,6 @@ install_version() {
 	install_type="$1"
 	version="$2"
 	install_path="${3%/bin}/bin"
-	os="$(uname | tr '[:upper:]' '[:lower:]')"
-	arch="$(uname -m)"
-	if [ "$os" == "darwin" ] && [ "$arch" == "arm64" ]; then
-		arch="aarch64"
-	fi
 
 	if [ "$install_type" != "version" ]; then
 		fail "asdf-$TOOL_NAME supports release installs only"
@@ -69,9 +64,9 @@ install_version() {
 
 	(
 		mkdir -p "$install_path"
-		local download_file="$ASDF_DOWNLOAD_PATH/taplo-${os}-${arch}.gz"
+		local download_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$version"
 		local install_file="$install_path/$TOOL_NAME"
-		gunzip -c "$download_file" >"$install_file"
+		cp "$download_file" "$install_file"
 
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
