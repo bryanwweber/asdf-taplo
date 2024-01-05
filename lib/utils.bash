@@ -67,6 +67,7 @@ install_version() {
 		local download_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$version"
 		local install_file="$install_path/$TOOL_NAME"
 		cp "$download_file" "$install_file"
+		chmod +x "$install_file"
 
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
